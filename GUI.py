@@ -10,12 +10,9 @@ from matplotlib.figure import Figure
 style.use('ggplot')
 
 class GUI(tk.Tk):
-    def __init__(self, title='Temp_log', min_size=(1000,630), bg='#131313',
+    def __init__(self, title='Temp_log', min_size=(960,630), bg='#131313',
                  fg='white', canvas_colour='white'):
         super().__init__()
-        self._graph  = None
-        self._fig    = None
-        self._canvas = None
         self._initialise_window(title, min_size, bg, fg)
         self._create_canvas(canvas_colour)
         self._create_buttons()
@@ -27,8 +24,8 @@ class GUI(tk.Tk):
 
     def _create_canvas(self, canvas_colour):
         # Create a blanc initial frame
-        self._update_graph(True)
-        # Prepare the convas to contain graphs
+        self._update_graph(virgin=True)
+        # Prepare the canvas to contain graphs
         self._graph = Figure()
         self._fig = self._graph.add_subplot(111) 
         
@@ -38,7 +35,6 @@ class GUI(tk.Tk):
         self._create_week_button()
         self._create_month_button()
         self._create_csv_button()
-
 
     def _create_day_button(self):
         ttk.Button(self, text="Day",
@@ -85,6 +81,6 @@ class GUI(tk.Tk):
         if(virgin):
             self._graph = Figure()
 
-        self._canvas = FigureCanvasTkAgg(self._graph, self)
-        self._canvas.get_tk_widget().place(relx=0.03, rely=0.052,
-                                 relheight=0.85, relwidth=0.9)
+        _canvas = FigureCanvasTkAgg(self._graph, self)
+        _canvas.get_tk_widget().place(relx=0.03, rely=0.052,
+                                      relheight=0.85, relwidth=0.9)

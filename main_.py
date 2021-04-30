@@ -2,7 +2,7 @@
 
 from GUI import GUI
 
-class Controller:
+class main_:
     def __init__(self, *args, **kwargs):
         self._initialise_display(*args, **kwargs)
         self._update_display()
@@ -12,7 +12,7 @@ class Controller:
         self._gui = GUI(*args, **kwargs)
 
     def _update_display(self):
-        self._gui.after(1, self._update_display) # continue looping
+        self._gui.after(1, self._update_display) # Loop forever
 
 if __name__ == '__main__':
-    Controller()
+    main_()
