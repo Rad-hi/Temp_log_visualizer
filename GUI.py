@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from parser import parser
+
 import tkinter as tk
 from tkinter import ttk, filedialog
 
@@ -20,6 +22,7 @@ class GUI(tk.Tk):
         self._initialise_window(title, min_size, bg, fg)
         self._create_canvas(canvas_colour)
         self._create_buttons()
+        self._parser = parser()
 
     def _initialise_window(self, title, min_size, bg, fg):
         self.title(title)
@@ -43,45 +46,56 @@ class GUI(tk.Tk):
         self._create_fetching_controls()
 
     def _create_day_button(self):
-        ttk.Button(self, text="Day",
-                   command=self._draw_day).place(
-                   relx=0.03, rely=self.COMMON_Y_POS, relwidth=0.1)
+        ttk.Button(self, text="Day", command=self._draw_day)\
+           .place(relx=0.03, rely=self.COMMON_Y_POS, relwidth=0.1)
 
     def _create_week_button(self):
-        ttk.Button(self, text="Week",
-                   command=self._draw_week).place(
-                   relx=0.145, rely=self.COMMON_Y_POS, relwidth=0.1)
+        ttk.Button(self, text="Week", command=self._draw_week)\
+           .place(relx=0.145, rely=self.COMMON_Y_POS, relwidth=0.1)
 
     def _create_month_button(self):
-        ttk.Button(self, text="Month",
-                   command=self._draw_month).place(
-                   relx=0.26, rely=self.COMMON_Y_POS, relwidth=0.1)
+        ttk.Button(self, text="Month", command=self._draw_month)\
+           .place(relx=0.26, rely=self.COMMON_Y_POS, relwidth=0.1)
 
     def _create_get_csv_button(self):
-        ttk.Button(self, text="Get CSV",
-                   command=self._save_csv).place(
-                   relx=self.COMMON_X_POS, rely=0.052, relwidth=0.1)
+        ttk.Button(self, text="Get CSV", command=self._save_csv)\
+           .place(relx=self.COMMON_X_POS, rely=0.052, relwidth=0.1)
 
     def _create_load_csv_button(self):
-        ttk.Button(self, text="Load CSV",
-                   command=self._load_csv).place(
-                   relx=self.COMMON_X_POS, rely=0.122, relwidth=0.1)
+        ttk.Button(self, text="Load CSV", command=self._load_csv)\
+           .place(relx=self.COMMON_X_POS, rely=0.122, relwidth=0.1)
 
     def _create_fetching_controls(self):
-        self.FEED = tk.StringVar()
-        self.KEY  = tk.StringVar()
-        feed_entry = ttk.Entry(self, textvariable=self.FEED).place(
-                               relx=self.COMMON_X_POS, 
-                               rely=0.252,
-                               relwidth=0.1)
+        ttk.Separator(self, orient='horizontal')\
+           .place(relx=self.COMMON_X_POS, rely=0.202, relwidth=0.1)
+        
+        ''' Create 3 entries for the USER, KEY, and FEED to fetch data from.
+            Each entry is associated with a label that describes what it is,
+            and each entry is binded to the enter key for passage to the next "UX-ish" '''
 
+        tk.Label(self,text="AIO User", bg='#131313', fg="red")\
+          .place(relx=self.COMMON_X_POS, rely=0.23, relwidth=0.1, relheight=0.02)
+        self.USER = tk.StringVar()
+        user_entry = ttk.Entry(self, textvariable=self.USER)
+        user_entry.place(relx=self.COMMON_X_POS, rely=0.252, relwidth=0.1)
+        user_entry.bind('<Return>', lambda e=None: feed_entry.focus())
+
+        tk.Label(self,text="AIO Feed", bg='#131313', fg="red")\
+          .place(relx=self.COMMON_X_POS, rely=0.29, relwidth=0.1, relheight=0.02)
+        self.FEED = tk.StringVar()
+        feed_entry = ttk.Entry(self, textvariable=self.FEED)
+        feed_entry.place(relx=self.COMMON_X_POS, rely=0.312, relwidth=0.1)
+        feed_entry.bind('<Return>', lambda e=None: key_entry.focus())
+
+        tk.Label(self,text="AIO Key", bg='#131313', fg="red")\
+          .place(relx=self.COMMON_X_POS, rely=0.35, relwidth=0.1, relheight=0.02)
+        self.KEY  = tk.StringVar()
         key_entry = ttk.Entry(self, textvariable=self.KEY, show="*")
-        key_entry.place(relx=self.COMMON_X_POS, rely=0.312, relwidth=0.1)
-        key_entry.bind('<Return>',self._authenticate) # Could be entered with an enter key press
-        ttk.Button(self, text="Fetch data",
-                   command=self._authenticate).place(
-                   relx=self.COMMON_X_POS+0.03, 
-                   rely=0.372, relwidth=0.07)
+        key_entry.place(relx=self.COMMON_X_POS, rely=0.372, relwidth=0.1)
+        key_entry.bind('<Return>',self._authenticate)
+        
+        ttk.Button(self, text="Fetch data", command=self._authenticate)\
+           .place(relx=self.COMMON_X_POS+0.03, rely=0.432, relwidth=0.07)
 
     def _draw_day(self):
         if(self.CURRENT_GRAPH != "D"): # To prevent redrawing the same thing
@@ -112,13 +126,9 @@ class GUI(tk.Tk):
 
     def _authenticate(self, *args):
         ''' A connection to the adafruit API shall be tested here '''
-        print(f"Key: {self.KEY.get()}")
-        if(self.FEED.get() == "Radhi"):
-            if(self.KEY.get() == "1234"):
-                print("Access granted!")
-            else:
-                print("You're not allowed here!")
-                self.KEY.set("")
+        # Just try to connect and if an error occured report it
+
+        self._parser.fetch_data(self.USER.get(), self.FEED.get(), self.KEY.get())
 
     # I'm re-drawing the canvas each time I'm changing the view but
     # it's a dirty hack that works \__(°_°)__/
@@ -128,5 +138,5 @@ class GUI(tk.Tk):
             self._graph = Figure()
 
         _canvas = FigureCanvasTkAgg(self._graph, self)
-        _canvas.get_tk_widget().place(relx=0.03, rely=0.052,
-                                      relheight=0.85, relwidth=0.8)
+        _canvas.get_tk_widget()\
+               .place(relx=0.03, rely=0.052, relheight=0.85, relwidth=0.8)
