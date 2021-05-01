@@ -8,12 +8,7 @@ import pandas as pd
 class parser:
 
 	FETCHED = False
-
-	'''
-	def __init__(self):
-		pass
-	'''
-
+	
 	def fetch_data(self, user, feed, key):
 		if(not self.FETCHED):
 			try:
@@ -25,6 +20,7 @@ class parser:
 				print("Invalid info")
 		else:
 			print("Already fetched!")
+
 	def load_data(self):
 		pass
 

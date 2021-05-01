@@ -3,7 +3,7 @@
 from parser import parser
 
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk
 
 from matplotlib import style
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -16,7 +16,7 @@ class GUI(tk.Tk):
     BACKGROUND_COLOR    = '#131313'
     COMMON_Y_POS        = 0.925
     COMMON_X_POS        = 0.865
-    # Holds an indicator on the current graph
+    # Holds an indicator on the current graph being drawn
     CURRENT_GRAPH       = None  
     # Holds the latest state of the max, min, mean checkbuttons 
     MAX_MIN_MEAN        = (0)*3 
@@ -25,7 +25,7 @@ class GUI(tk.Tk):
         super().__init__()
         self._initialise_window(title, min_size, fg)
         self._create_canvas(canvas_colour)
-        self._create_buttons()
+        self._create_widgets()
         self._parser = parser()
 
     def _initialise_window(self, title, min_size, fg):
@@ -41,7 +41,7 @@ class GUI(tk.Tk):
         self._fig = self._graph.add_subplot(111) 
         
 
-    def _create_buttons(self):
+    def _create_widgets(self):
         self._create_day_button()
         self._create_week_button()
         self._create_month_button()
@@ -63,23 +63,23 @@ class GUI(tk.Tk):
            .place(relx=0.26, rely=self.COMMON_Y_POS, relwidth=0.1)
 
     def _create_mx_mi_mn_checkbuttons(self): # Add commands to update the graph automatically ?
-        tk.Label(self, text="Choose value(s) to graph:", bg=self.BACKGROUND_COLOR, fg="red")\
-          .place(relx=0.375, rely=self.COMMON_Y_POS)
+        tk.Label(self, text="Choose value(s) to graph:", bg=self.BACKGROUND_COLOR, fg="white")\
+          .place(relx=0.375, rely=self.COMMON_Y_POS, relheight=0.048)
 
         self._check_Max  = tk.IntVar()
         ttk.Checkbutton(self, text="Max", variable=self._check_Max, 
                         onvalue=True, offvalue=False)\
-           .place(relx=0.545, rely=self.COMMON_Y_POS, relheight=0.042)
+           .place(relx=0.545, rely=self.COMMON_Y_POS, relheight=0.042, relwidth=0.05)
         
         self._check_Min  = tk.IntVar()
         ttk.Checkbutton(self, text="Min", variable=self._check_Min, 
                         onvalue=True, offvalue=False)\
-           .place(relx=0.6, rely=self.COMMON_Y_POS, relheight=0.042)
+           .place(relx=0.6, rely=self.COMMON_Y_POS, relheight=0.042, relwidth=0.05)
         
         self._check_Mean = tk.IntVar()
         ttk.Checkbutton(self, text="Mean", variable=self._check_Mean, 
                         onvalue=True, offvalue=False)\
-           .place(relx=0.655, rely=self.COMMON_Y_POS, relheight=0.042)
+           .place(relx=0.655, rely=self.COMMON_Y_POS, relheight=0.042, relwidth=0.05)
 
 
     def _create_get_csv_button(self):
@@ -98,21 +98,21 @@ class GUI(tk.Tk):
             Each entry is associated with a label that describes what it is,
             and each entry is binded to the enter key for passage to the next "UX-ish" '''
 
-        tk.Label(self, text="AIO User", bg=self.BACKGROUND_COLOR, fg="red")\
+        tk.Label(self, text="AIO User", bg=self.BACKGROUND_COLOR, fg="white")\
           .place(relx=self.COMMON_X_POS, rely=0.23, relwidth=0.1, relheight=0.02)
         self.USER = tk.StringVar()
         user_entry = ttk.Entry(self, textvariable=self.USER)
         user_entry.place(relx=self.COMMON_X_POS, rely=0.252, relwidth=0.1)
         user_entry.bind('<Return>', lambda e=None: feed_entry.focus())
 
-        tk.Label(self,text="AIO Feed", bg=self.BACKGROUND_COLOR, fg="red")\
+        tk.Label(self,text="AIO Feed", bg=self.BACKGROUND_COLOR, fg="white")\
           .place(relx=self.COMMON_X_POS, rely=0.29, relwidth=0.1, relheight=0.02)
         self.FEED = tk.StringVar()
         feed_entry = ttk.Entry(self, textvariable=self.FEED)
         feed_entry.place(relx=self.COMMON_X_POS, rely=0.312, relwidth=0.1)
         feed_entry.bind('<Return>', lambda e=None: key_entry.focus())
 
-        tk.Label(self,text="AIO Key", bg=self.BACKGROUND_COLOR, fg="red")\
+        tk.Label(self,text="AIO Key", bg=self.BACKGROUND_COLOR, fg="white")\
           .place(relx=self.COMMON_X_POS, rely=0.35, relwidth=0.1, relheight=0.02)
         self.KEY  = tk.StringVar()
         key_entry = ttk.Entry(self, textvariable=self.KEY, show="*")
@@ -125,33 +125,35 @@ class GUI(tk.Tk):
 
     def _draw_day(self):
         mx, mi, mn = self._get_checks()
-        if(self.CURRENT_GRAPH != "D" or (mx, mi, mn) != self.MAX_MIN_MEAN): # To prevent redrawing the same thing
-            self._fig.clear()
-            xValues = self._parser._df.index.values
-            if(mx):
-                self._fig.plot(self._parser._df["mx"])
-            if(mi):
-                self._fig.plot(self._parser._df["mi"])
-            if(mn):
-                self._fig.plot(self._parser._df["mn"])
-            self._update_graph()
+        # To prevent redrawing the same thing
+        if(self._parser.FETCHED and\
+          (self.CURRENT_GRAPH != "D" or\
+          (mx, mi, mn) != self.MAX_MIN_MEAN)): 
+          
+            self._draw(self._parser._df, (mx, mi, mn))
             self.CURRENT_GRAPH = "D"
             self.MAX_MIN_MEAN = (mx, mi, mn)
 
+    ''' Draw week and month are for now static and do nothing '''
     def _draw_week(self):
-        if(self.CURRENT_GRAPH != "W"):     
+        mx, mi, mn = self._get_checks()
+        if(self.CURRENT_GRAPH != "W" or (mx, mi, mn) != self.MAX_MIN_MEAN):     
             self._fig.clear()
             self._fig.plot([1,2,3,4,5,6,7,8],[2,8,9,3,1,9,3,15])
             self._update_graph()
             self.CURRENT_GRAPH = "W"
+            self.MAX_MIN_MEAN = (mx, mi, mn)
 
-    def _draw_month(self):     
-        if(self.CURRENT_GRAPH != "M"):
+    def _draw_month(self):
+        mx, mi, mn = self._get_checks()  
+        if(self.CURRENT_GRAPH != "M" or (mx, mi, mn) != self.MAX_MIN_MEAN):
             self._fig.clear()
             self._fig.plot([1,2,3,4,5,6,7,8],[20,-12,9,8,1,9,3,-6])
             self._update_graph()
             self.CURRENT_GRAPH = "M"
+            self.MAX_MIN_MEAN = (mx, mi, mn)
 
+    ''' Should decide on the df format before working the savings '''
     def _save_csv(self):
         print("Save CSV")
 
@@ -179,7 +181,15 @@ class GUI(tk.Tk):
     def _get_checks(self):
         return self._check_Max.get(), self._check_Min.get(), self._check_Mean.get()
 
-    # I'm re-drawing the canvas each time I'm changing the view but
+    def _draw(self, data, values):
+        mx_mi_mn = ["mx", "mi", "mn"]
+        self._fig.clear()
+        for i, value in enumerate(values):
+            if value:
+                self._fig.plot(data[mx_mi_mn[i]])
+        self._update_graph()
+
+    # I'm re-creating the canvas each time I'm changing the view but
     # it's a dirty hack that works \__(°_°)__/
     def _update_graph(self, virgin=False):
         # Only happens once at the start to get a clear screen
