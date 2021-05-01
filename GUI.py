@@ -13,21 +13,25 @@ style.use('ggplot')
 
 class GUI(tk.Tk):
     ''' This is the showroom, where all graphic elements are created '''
-    COMMON_Y_POS  = 0.925
-    COMMON_X_POS  = 0.865
-    CURRENT_GRAPH = None
-    def __init__(self, title='Temp_log', min_size=(1120,630), bg='#131313',
+    BACKGROUND_COLOR    = '#131313'
+    COMMON_Y_POS        = 0.925
+    COMMON_X_POS        = 0.865
+    # Holds an indicator on the current graph
+    CURRENT_GRAPH       = None  
+    # Holds the latest state of the max, min, mean checkbuttons 
+    MAX_MIN_MEAN        = (0)*3 
+    def __init__(self, title='Temp_log', min_size=(1120,630),
                  fg='white', canvas_colour='white'):
         super().__init__()
-        self._initialise_window(title, min_size, bg, fg)
+        self._initialise_window(title, min_size, fg)
         self._create_canvas(canvas_colour)
         self._create_buttons()
         self._parser = parser()
 
-    def _initialise_window(self, title, min_size, bg, fg):
+    def _initialise_window(self, title, min_size, fg):
         self.title(title)
         self.minsize(*min_size)
-        self['bg'] = bg
+        self['bg'] = self.BACKGROUND_COLOR
 
     def _create_canvas(self, canvas_colour):
         # Create a blanc initial frame
@@ -44,6 +48,7 @@ class GUI(tk.Tk):
         self._create_get_csv_button()
         self._create_load_csv_button()
         self._create_fetching_controls()
+        self._create_mx_mi_mn_checkbuttons()
 
     def _create_day_button(self):
         ttk.Button(self, text="Day", command=self._draw_day)\
@@ -56,6 +61,26 @@ class GUI(tk.Tk):
     def _create_month_button(self):
         ttk.Button(self, text="Month", command=self._draw_month)\
            .place(relx=0.26, rely=self.COMMON_Y_POS, relwidth=0.1)
+
+    def _create_mx_mi_mn_checkbuttons(self): # Add commands to update the graph automatically ?
+        tk.Label(self, text="Choose value(s) to graph:", bg=self.BACKGROUND_COLOR, fg="red")\
+          .place(relx=0.375, rely=self.COMMON_Y_POS)
+
+        self._check_Max  = tk.IntVar()
+        ttk.Checkbutton(self, text="Max", variable=self._check_Max, 
+                        onvalue=True, offvalue=False)\
+           .place(relx=0.545, rely=self.COMMON_Y_POS, relheight=0.042)
+        
+        self._check_Min  = tk.IntVar()
+        ttk.Checkbutton(self, text="Min", variable=self._check_Min, 
+                        onvalue=True, offvalue=False)\
+           .place(relx=0.6, rely=self.COMMON_Y_POS, relheight=0.042)
+        
+        self._check_Mean = tk.IntVar()
+        ttk.Checkbutton(self, text="Mean", variable=self._check_Mean, 
+                        onvalue=True, offvalue=False)\
+           .place(relx=0.655, rely=self.COMMON_Y_POS, relheight=0.042)
+
 
     def _create_get_csv_button(self):
         ttk.Button(self, text="Get CSV", command=self._save_csv)\
@@ -73,21 +98,21 @@ class GUI(tk.Tk):
             Each entry is associated with a label that describes what it is,
             and each entry is binded to the enter key for passage to the next "UX-ish" '''
 
-        tk.Label(self,text="AIO User", bg='#131313', fg="red")\
+        tk.Label(self, text="AIO User", bg=self.BACKGROUND_COLOR, fg="red")\
           .place(relx=self.COMMON_X_POS, rely=0.23, relwidth=0.1, relheight=0.02)
         self.USER = tk.StringVar()
         user_entry = ttk.Entry(self, textvariable=self.USER)
         user_entry.place(relx=self.COMMON_X_POS, rely=0.252, relwidth=0.1)
         user_entry.bind('<Return>', lambda e=None: feed_entry.focus())
 
-        tk.Label(self,text="AIO Feed", bg='#131313', fg="red")\
+        tk.Label(self,text="AIO Feed", bg=self.BACKGROUND_COLOR, fg="red")\
           .place(relx=self.COMMON_X_POS, rely=0.29, relwidth=0.1, relheight=0.02)
         self.FEED = tk.StringVar()
         feed_entry = ttk.Entry(self, textvariable=self.FEED)
         feed_entry.place(relx=self.COMMON_X_POS, rely=0.312, relwidth=0.1)
         feed_entry.bind('<Return>', lambda e=None: key_entry.focus())
 
-        tk.Label(self,text="AIO Key", bg='#131313', fg="red")\
+        tk.Label(self,text="AIO Key", bg=self.BACKGROUND_COLOR, fg="red")\
           .place(relx=self.COMMON_X_POS, rely=0.35, relwidth=0.1, relheight=0.02)
         self.KEY  = tk.StringVar()
         key_entry = ttk.Entry(self, textvariable=self.KEY, show="*")
@@ -97,15 +122,21 @@ class GUI(tk.Tk):
         ttk.Button(self, text="Fetch data", command=self._authenticate)\
            .place(relx=self.COMMON_X_POS+0.03, rely=0.432, relwidth=0.07)
 
+
     def _draw_day(self):
-        if(self.CURRENT_GRAPH != "D"): # To prevent redrawing the same thing
+        mx, mi, mn = self._get_checks()
+        if(self.CURRENT_GRAPH != "D" or (mx, mi, mn) != self.MAX_MIN_MEAN): # To prevent redrawing the same thing
             self._fig.clear()
             xValues = self._parser._df.index.values
-            self._fig.plot(self._parser._df["mx"])
-            self._fig.plot(self._parser._df["mi"])
-            self._fig.plot(self._parser._df["mn"])
+            if(mx):
+                self._fig.plot(self._parser._df["mx"])
+            if(mi):
+                self._fig.plot(self._parser._df["mi"])
+            if(mn):
+                self._fig.plot(self._parser._df["mn"])
             self._update_graph()
             self.CURRENT_GRAPH = "D"
+            self.MAX_MIN_MEAN = (mx, mi, mn)
 
     def _draw_week(self):
         if(self.CURRENT_GRAPH != "W"):     
@@ -144,6 +175,9 @@ class GUI(tk.Tk):
 
     def _get_inputs(self):
         return self.USER.get(), self.FEED.get(), self.KEY.get()
+
+    def _get_checks(self):
+        return self._check_Max.get(), self._check_Min.get(), self._check_Mean.get()
 
     # I'm re-drawing the canvas each time I'm changing the view but
     # it's a dirty hack that works \__(°_°)__/
