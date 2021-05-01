@@ -33,7 +33,7 @@ class GUI(tk.Tk):
         # Create a blanc initial frame
         self._update_graph(virgin=True)
         # Prepare the canvas to contain graphs
-        self._graph = Figure()
+        self._graph = Figure(figsize=(12, 6), dpi=90)
         self._fig = self._graph.add_subplot(111) 
         
 
@@ -100,7 +100,10 @@ class GUI(tk.Tk):
     def _draw_day(self):
         if(self.CURRENT_GRAPH != "D"): # To prevent redrawing the same thing
             self._fig.clear()
-            self._fig.plot([1,2,3,4,5,6,7,8],[5,6,1,None,5,9,3,5])
+            xValues = self._parser._df.index.values
+            self._fig.plot(self._parser._df["mx"])
+            self._fig.plot(self._parser._df["mi"])
+            self._fig.plot(self._parser._df["mn"])
             self._update_graph()
             self.CURRENT_GRAPH = "D"
 
@@ -127,8 +130,20 @@ class GUI(tk.Tk):
     def _authenticate(self, *args):
         ''' A connection to the adafruit API shall be tested here '''
         # Just try to connect and if an error occured report it
+        user, feed, key = self._get_inputs()   
+        if(len(user) and len(feed) and len(key)):
+            self._parser.fetch_data(user, feed, key)
+            self._reset_inputs()
+        else:
+            print("Type in Something")
 
-        self._parser.fetch_data(self.USER.get(), self.FEED.get(), self.KEY.get())
+    def _reset_inputs(self):
+        self.USER.set("")
+        self.FEED.set("")
+        self.KEY.set("") 
+
+    def _get_inputs(self):
+        return self.USER.get(), self.FEED.get(), self.KEY.get()
 
     # I'm re-drawing the canvas each time I'm changing the view but
     # it's a dirty hack that works \__(°_°)__/
