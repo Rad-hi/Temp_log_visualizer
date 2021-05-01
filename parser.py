@@ -6,17 +6,25 @@ import datetime
 import pandas as pd
 
 class parser:
-	"""
-	def __init__():
-		pass
-	"""
-	
-	def fetch_data(self, user, feed, key):
-		adafruit_client = Client(user, key)
-		all_data = adafruit_client.data(feed) # This is all the existing data in broker
-		for data in all_data:
-			print(data.value)
 
+	FETCHED = False
+
+	'''
+	def __init__(self):
+		pass
+	'''
+
+	def fetch_data(self, user, feed, key):
+		if(not self.FETCHED):
+			try:
+				adafruit_client = Client(user, key)
+				all_data = adafruit_client.data(feed) # This is all the existing data in broker
+				self._create_dataframe(all_data[0].value) # Some smart parsing shall be done !!
+				self.FETCHED = True
+			except:
+				print("Invalid info")
+		else:
+			print("Already fetched!")
 	def load_data(self):
 		pass
 
@@ -24,7 +32,9 @@ class parser:
 		pass
 
 	def _create_dataframe(self, data):
-		pass
+		self._df = pd.DataFrame(json.loads(data)).T 
+		print("Done parsing!")
+		print(self._df.head())
 
 
 """
