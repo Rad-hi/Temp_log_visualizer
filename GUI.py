@@ -5,6 +5,8 @@ from parser import parser
 import tkinter as tk
 from tkinter import ttk
 
+import numpy as np
+
 from matplotlib import style
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -63,7 +65,8 @@ class GUI(tk.Tk):
            .place(relx=0.26, rely=self.COMMON_Y_POS, relwidth=0.1)
 
     def _create_mx_mi_mn_checkbuttons(self): # Add commands to update the graph automatically ?
-        tk.Label(self, text="Choose value(s) to graph:", bg=self.BACKGROUND_COLOR, fg="white")\
+        tk.Label(self, text="Choose value(s) to graph:", 
+                 bg=self.BACKGROUND_COLOR, fg="white")\
           .place(relx=0.375, rely=self.COMMON_Y_POS, relheight=0.048)
 
         self._check_Max  = tk.IntVar()
@@ -155,10 +158,10 @@ class GUI(tk.Tk):
 
     ''' Should decide on the df format before working the savings '''
     def _save_csv(self):
-        print("Save CSV")
+        self._parser.output_csv("_save_csv")
 
     def _load_csv(self):
-        print("Load CSV")
+        self._parser = parser.from_file()
 
     def _authenticate(self, *args):
         ''' A connection to the adafruit API shall be tested here '''
@@ -183,12 +186,14 @@ class GUI(tk.Tk):
 
     def _draw(self, data, values):
         mx_mi_mn = ["mx", "mi", "mn"]
+        colours_ = ['#131313', (0,1,0), (0,0,1)] #customize these!?
         self._fig.clear()
         for i, value in enumerate(values):
             if value:
-                self._fig.plot(data[mx_mi_mn[i]])
+                # Deprecated, but works! .. well couldn't solve it for now...
+                self._fig.plot(data["Hour"], data[mx_mi_mn[i]], color=colours_[i]) 
         self._update_graph()
-
+        
     # I'm re-creating the canvas each time I'm changing the view but
     # it's a dirty hack that works \__(°_°)__/
     def _update_graph(self, virgin=False):
