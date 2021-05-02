@@ -4,6 +4,7 @@ from parser import parser
 
 import tkinter as tk
 from tkinter import ttk
+from tkcalendar import DateEntry
 
 import numpy as np
 
@@ -47,6 +48,7 @@ class GUI(tk.Tk):
         self._create_day_button()
         self._create_week_button()
         self._create_month_button()
+        self._create_date_picker()
         self._create_get_csv_button()
         self._create_load_csv_button()
         self._create_fetching_controls()
@@ -58,35 +60,42 @@ class GUI(tk.Tk):
 
     def _create_week_button(self):
         ttk.Button(self, text="Week", command=self._draw_week)\
-           .place(relx=0.145, rely=self.COMMON_Y_POS, relwidth=0.1)
+           .place(relx=0.135, rely=self.COMMON_Y_POS, relwidth=0.1)
 
     def _create_month_button(self):
         ttk.Button(self, text="Month", command=self._draw_month)\
-           .place(relx=0.26, rely=self.COMMON_Y_POS, relwidth=0.1)
+           .place(relx=0.24, rely=self.COMMON_Y_POS, relwidth=0.1)
 
     def _create_mx_mi_mn_checkbuttons(self): # Add commands to update the graph automatically ?
         tk.Label(self, text="Choose value(s) to graph:", 
                  bg=self.BACKGROUND_COLOR, fg="white")\
-          .place(relx=0.375, rely=self.COMMON_Y_POS, relheight=0.048)
+          .place(relx=0.355, rely=self.COMMON_Y_POS, relheight=0.048)
 
         self._check_Max  = tk.IntVar()
         ttk.Checkbutton(self, text="Max", variable=self._check_Max, 
                         onvalue=True, offvalue=False)\
-           .place(relx=0.545, rely=self.COMMON_Y_POS, relheight=0.042, relwidth=0.05)
+           .place(relx=0.515, rely=self.COMMON_Y_POS, relheight=0.042, relwidth=0.05)
         
         self._check_Min  = tk.IntVar()
         ttk.Checkbutton(self, text="Min", variable=self._check_Min, 
                         onvalue=True, offvalue=False)\
-           .place(relx=0.6, rely=self.COMMON_Y_POS, relheight=0.042, relwidth=0.05)
+           .place(relx=0.57, rely=self.COMMON_Y_POS, relheight=0.042, relwidth=0.05)
         
         self._check_Mean = tk.IntVar()
         ttk.Checkbutton(self, text="Mean", variable=self._check_Mean, 
                         onvalue=True, offvalue=False)\
-           .place(relx=0.655, rely=self.COMMON_Y_POS, relheight=0.042, relwidth=0.05)
+           .place(relx=0.624, rely=self.COMMON_Y_POS, relheight=0.042, relwidth=0.05)
 
+    def _create_date_picker(self):
+        tk.Label(self, text="Choose date:", 
+                 bg=self.BACKGROUND_COLOR, fg="white")\
+          .place(relx=0.685, rely=self.COMMON_Y_POS, relheight=0.048)
+
+        self._calendar = DateEntry(self, borderwidth=1, width=6)
+        self._calendar.place(relx=0.772, rely=self.COMMON_Y_POS, relheight=0.04)
 
     def _create_get_csv_button(self):
-        ttk.Button(self, text="Get CSV", command=self._save_csv)\
+        ttk.Button(self, text="Save as CSV", command=self._save_csv)\
            .place(relx=self.COMMON_X_POS, rely=0.052, relwidth=0.1)
 
     def _create_load_csv_button(self):
@@ -164,7 +173,7 @@ class GUI(tk.Tk):
             self._parser.fetch_data(user, feed, key)
             self._reset_inputs()
         else:
-            print("Type in Something")
+            print("Type in Something") # Make it graphic!
 
     def _reset_inputs(self):
         self.USER.set("")
@@ -183,12 +192,20 @@ class GUI(tk.Tk):
         colours_ = ['#131313', (0,1,0), (0,0,1)] #customize these!?
         self._fig.clear()
 
+        m, d, y = self._calendar.get().split('/')
+        # Don't think we'll read anything after 2050, or before 1950 \__(°_°)__/
+        if(int(y) < 50): 
+            y = "20"+y
+        else:
+            y = "19"+y
+        print(f"Month:{m}, Day:{d}, Year:{y}")
+
         if(kind == "D"): # Plotting a day
             for i, value in enumerate(values):
                 if value:
-                    printable = data.loc[(data["Year"] == 2021) &\
-                                         (data["Month"] == 5)].set_index("Unnamed: 0")
-                                         # Only set_index("Unnamed: 0") when only plotting a Day
+                    printable = data.loc[(data["Day"] == int(d)) &\
+                                         (data["Month"] == int(m)) &\
+                                         (data["Year"] == int(y))]
                     self._fig.plot(printable[mx_mi_mn[i]], color=colours_[i])
         
         elif(kind == "W"): # Plotting a week 
@@ -197,9 +214,8 @@ class GUI(tk.Tk):
         else: # Plotting a month
             for i, value in enumerate(values):
                 if value:
-                    printable = data.loc[(data["Year"] == 2021) &\
-                                         (data["Month"] == 4)].set_index("Unnamed: 0")
-                                         # Only set_index("Unnamed: 0") when only plotting a Day
+                    printable = data.loc[(data["Year"]== int(y)) &\
+                                         (data["Month"] == int(m))]
                     self._fig.plot(printable[mx_mi_mn[i]], color=colours_[i])
         
         self._update_graph()
@@ -216,7 +232,7 @@ class GUI(tk.Tk):
                .place(relx=0.03, rely=0.052, relheight=0.85, relwidth=0.8)
 
     def _save_csv(self):
-        self._parser.output_csv("_save_csv")
+        self._parser.output_csv()
 
     def _load_csv(self):
         self._parser = parser.from_file()
