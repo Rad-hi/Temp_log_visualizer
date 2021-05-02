@@ -8,8 +8,8 @@ from tkinter import filedialog
 
 class parser:
 
-	def __init__(self, filename='', fetched=False):
-		self.FETCHED = fetched
+	FETCHED = False
+	def __init__(self, filename=''):
 		self.filename = filename
 		if(filename):
 			self._load_data()
@@ -39,10 +39,11 @@ class parser:
 			df_i["Year"] = date_.year
 			df_i["Time"] = date_.time()
 
-			df_i.reset_index(inplace=True)
-			df_i = df_i.rename(columns = {'index':'Hour'})
+			# If hour is wanted as a column on its own...
+			# df_i.reset_index(inplace=True)
+			# df_i = df_i.rename(columns = {'index':'Hour'})
 			
-			df = df.append(df_i, ignore_index=True)
+			df = df.append(df_i, ignore_index=False)
 
 		self._df = df
 
