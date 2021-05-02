@@ -99,7 +99,8 @@ class GUI(tk.Tk):
         
         ''' Create 3 entries for the USER, KEY, and FEED to fetch data from.
             Each entry is associated with a label that describes what it is,
-            and each entry is binded to the enter key for passage to the next "UX-ish" '''
+            and each entry is binded to the enter key for automatic passage 
+            to the next, "UX-ish" '''
 
         tk.Label(self, text="AIO User", bg=self.BACKGROUND_COLOR, fg="white")\
           .place(relx=self.COMMON_X_POS, rely=0.23, relwidth=0.1, relheight=0.02)
@@ -133,39 +134,31 @@ class GUI(tk.Tk):
           (self.CURRENT_GRAPH != "D" or\
           (mx, mi, mn) != self.MAX_MIN_MEAN)): 
           
-            self._draw(self._parser._df, (mx, mi, mn))
+            self._draw(self._parser._df, (mx, mi, mn), kind="D")
             self.CURRENT_GRAPH = "D"
             self.MAX_MIN_MEAN = (mx, mi, mn)
 
-    ''' Draw week and month are for now static and do nothing '''
     def _draw_week(self):
         mx, mi, mn = self._get_checks()
-        if(self.CURRENT_GRAPH != "W" or (mx, mi, mn) != self.MAX_MIN_MEAN):     
-            self._fig.clear()
-            self._fig.plot([1,2,3,4,5,6,7,8],[2,8,9,3,1,9,3,15])
-            self._update_graph()
+        if(self._parser.FETCHED and\
+          (self.CURRENT_GRAPH != "W" or\
+          (mx, mi, mn) != self.MAX_MIN_MEAN)):
+            
+            self._draw(self._parser._df, (mx, mi, mn), kind="W")
             self.CURRENT_GRAPH = "W"
             self.MAX_MIN_MEAN = (mx, mi, mn)
 
     def _draw_month(self):
         mx, mi, mn = self._get_checks()  
-        if(self.CURRENT_GRAPH != "M" or (mx, mi, mn) != self.MAX_MIN_MEAN):
-            self._fig.clear()
-            self._fig.plot([1,2,3,4,5,6,7,8],[20,-12,9,8,1,9,3,-6])
-            self._update_graph()
+        if(self._parser.FETCHED and\
+          (self.CURRENT_GRAPH != "M" or\
+          (mx, mi, mn) != self.MAX_MIN_MEAN)):
+
+            self._draw(self._parser._df, (mx, mi, mn), kind="M")
             self.CURRENT_GRAPH = "M"
             self.MAX_MIN_MEAN = (mx, mi, mn)
 
-    ''' Should decide on the df format before working the savings '''
-    def _save_csv(self):
-        self._parser.output_csv("_save_csv")
-
-    def _load_csv(self):
-        self._parser = parser.from_file()
-
     def _authenticate(self, *args):
-        ''' A connection to the adafruit API shall be tested here '''
-        # Just try to connect and if an error occured report it
         user, feed, key = self._get_inputs()   
         if(len(user) and len(feed) and len(key)):
             self._parser.fetch_data(user, feed, key)
@@ -184,14 +177,31 @@ class GUI(tk.Tk):
     def _get_checks(self):
         return self._check_Max.get(), self._check_Min.get(), self._check_Mean.get()
 
-    def _draw(self, data, values):
+    # Takes in the data, values(max, min, mean), kind(day, week, month)
+    def _draw(self, data, values, kind="D"):
         mx_mi_mn = ["mx", "mi", "mn"]
         colours_ = ['#131313', (0,1,0), (0,0,1)] #customize these!?
         self._fig.clear()
-        for i, value in enumerate(values):
-            if value:
-                # Deprecated, but works! .. well couldn't solve it for now...
-                self._fig.plot(data["Hour"], data[mx_mi_mn[i]], color=colours_[i]) 
+
+        if(kind == "D"): # Plotting a day
+            for i, value in enumerate(values):
+                if value:
+                    printable = data.loc[(data["Year"] == 2021) &\
+                                         (data["Month"] == 5)].set_index("Unnamed: 0")
+                                         # Only set_index("Unnamed: 0") when only plotting a Day
+                    self._fig.plot(printable[mx_mi_mn[i]], color=colours_[i])
+        
+        elif(kind == "W"): # Plotting a week 
+            self._fig.plot([1,2,3,4,5,6,7,8],[20,-12,9,8,1,9,3,-6])
+        
+        else: # Plotting a month
+            for i, value in enumerate(values):
+                if value:
+                    printable = data.loc[(data["Year"] == 2021) &\
+                                         (data["Month"] == 4)].set_index("Unnamed: 0")
+                                         # Only set_index("Unnamed: 0") when only plotting a Day
+                    self._fig.plot(printable[mx_mi_mn[i]], color=colours_[i])
+        
         self._update_graph()
         
     # I'm re-creating the canvas each time I'm changing the view but
@@ -204,3 +214,9 @@ class GUI(tk.Tk):
         _canvas = FigureCanvasTkAgg(self._graph, self)
         _canvas.get_tk_widget()\
                .place(relx=0.03, rely=0.052, relheight=0.85, relwidth=0.8)
+
+    def _save_csv(self):
+        self._parser.output_csv("_save_csv")
+
+    def _load_csv(self):
+        self._parser = parser.from_file()
