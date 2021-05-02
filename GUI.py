@@ -244,7 +244,7 @@ class GUI(tk.Tk):
         else: # Plotting a month
             for i, value in enumerate(values):
                 if value:
-                    printable = data.loc[(data["Month"] == date[1]) &\
+                    printable = data[(data["Month"] == date[1]) &\
                                          (data["Year"]== date[2])]
                     self._fig.plot(printable[mx_mi_mn[i]], color=colours_[i])
         
