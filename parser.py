@@ -43,7 +43,7 @@ class parser:
 			# df_i.reset_index(inplace=True)
 			# df_i = df_i.rename(columns = {'index':'Hour'})
 			
-			df = df.append(df_i, ignore_index=False)
+			df = df.append(df_i)
 
 		self._df = df
 
@@ -56,11 +56,17 @@ class parser:
 		return datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
 
 	def _load_data(self):
-		self._df = pd.read_csv(self.filename)
+		self._df = pd.read_csv(self.filename, index_col=0)
 		self.FETCHED = True
 
-	def output_csv(self, filename):
-		self._df.to_csv(f"{filename}.csv")
+	def output_csv(self, filename=""):
+		if(self.FETCHED): # There's actually data to save
+			filename = filedialog.asksaveasfilename(defaultextension='.csv',
+												    filetypes=(('CSV Files', '*.csv'),
+												     		   ('All Files', '*.*')))
+			self._df.to_csv(filename)
+		else:
+			print("No data") #Make it graphic!
 
 
 	@classmethod
@@ -69,8 +75,9 @@ class parser:
 			filename = filedialog.askopenfilename(defaultextension='.csv',
 												  filetypes=(('CSV Files', '*.csv'),
 												     		 ('All Files', '*.*')))
-			extension = filename[filename.rfind('.'):]
-			if extension != '.csv':
-				message = f'Invalid format {extension} - only .csv files allowed.'
-				messagebox.showinfo(message=message, title="ERROR")
+			if(filename):
+				extension = filename[filename.rfind('.'):]
+				if extension != '.csv':
+					message = f'Invalid format {extension} - only .csv files allowed.'
+					messagebox.showinfo(message=message, title="ERROR")
 		return cls(filename, *args, **kwargs)
