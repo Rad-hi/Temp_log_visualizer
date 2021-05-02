@@ -23,6 +23,8 @@ class GUI(tk.Tk):
     CURRENT_GRAPH       = None  
     # Holds the latest state of the max, min, mean checkbuttons 
     MAX_MIN_MEAN        = (0)*3 
+    # Holds the latest picked date
+    DATE                = ('')*3
     def __init__(self, title='Temp_log', min_size=(1120,630),
                  fg='white', canvas_colour='white'):
         super().__init__()
@@ -137,35 +139,26 @@ class GUI(tk.Tk):
 
 
     def _draw_day(self):
-        mx, mi, mn = self._get_checks()
-        # To prevent redrawing the same thing
-        if(self._parser.FETCHED and\
-          (self.CURRENT_GRAPH != "D" or\
-          (mx, mi, mn) != self.MAX_MIN_MEAN)): 
-          
-            self._draw(self._parser._df, (mx, mi, mn), kind="D")
-            self.CURRENT_GRAPH = "D"
-            self.MAX_MIN_MEAN = (mx, mi, mn)
+        self._assign_drawing("D")
 
     def _draw_week(self):
-        mx, mi, mn = self._get_checks()
-        if(self._parser.FETCHED and\
-          (self.CURRENT_GRAPH != "W" or\
-          (mx, mi, mn) != self.MAX_MIN_MEAN)):
-            
-            self._draw(self._parser._df, (mx, mi, mn), kind="W")
-            self.CURRENT_GRAPH = "W"
-            self.MAX_MIN_MEAN = (mx, mi, mn)
+        self._assign_drawing("W")
 
     def _draw_month(self):
-        mx, mi, mn = self._get_checks()  
-        if(self._parser.FETCHED and\
-          (self.CURRENT_GRAPH != "M" or\
-          (mx, mi, mn) != self.MAX_MIN_MEAN)):
+        self._assign_drawing("M")
 
-            self._draw(self._parser._df, (mx, mi, mn), kind="M")
-            self.CURRENT_GRAPH = "M"
+    def _assign_drawing(self, picker):
+        mx, mi, mn = self._get_checks()
+        d, m, y    = self._get_date()
+        if(self._parser.FETCHED and\
+          (self.CURRENT_GRAPH != picker or\
+          (mx, mi, mn) != self.MAX_MIN_MEAN or\
+          (d, m, y) != self.DATE)):
+            
+            self._draw(self._parser._df, (mx, mi, mn), kind=picker, date=(d, m, y))
+            self.CURRENT_GRAPH = picker
             self.MAX_MIN_MEAN = (mx, mi, mn)
+            self.DATE = (d, m, y)
 
     def _authenticate(self, *args):
         user, feed, key = self._get_inputs()   
@@ -186,26 +179,27 @@ class GUI(tk.Tk):
     def _get_checks(self):
         return self._check_Max.get(), self._check_Min.get(), self._check_Mean.get()
 
-    # Takes in the data, values(max, min, mean), kind(day, week, month)
-    def _draw(self, data, values, kind="D"):
-        mx_mi_mn = ["mx", "mi", "mn"]
-        colours_ = ['#131313', (0,1,0), (0,0,1)] #customize these!?
-        self._fig.clear()
-
+    def _get_date(self):
         m, d, y = self._calendar.get().split('/')
         # Don't think we'll read anything after 2050, or before 1950 \__(°_°)__/
         if(int(y) < 50): 
             y = "20"+y
         else:
             y = "19"+y
-        print(f"Month:{m}, Day:{d}, Year:{y}")
+        return int(d), int(m), int(y)
+
+    # Data ; values(max, min, mean) ; kind=day/week/month ; date(day, month, year)
+    def _draw(self, data, values, kind="D", date=(0, 0, 0)):
+        mx_mi_mn = ["mx", "mi", "mn"]
+        colours_ = ['#131313', (0,1,0), (0,0,1)] #customize these!?
+        self._fig.clear()
 
         if(kind == "D"): # Plotting a day
             for i, value in enumerate(values):
                 if value:
-                    printable = data.loc[(data["Day"] == int(d)) &\
-                                         (data["Month"] == int(m)) &\
-                                         (data["Year"] == int(y))]
+                    printable = data.loc[(data["Day"] == date[0]) &\
+                                         (data["Month"] == date[1]) &\
+                                         (data["Year"] == date[2])]
                     self._fig.plot(printable[mx_mi_mn[i]], color=colours_[i])
         
         elif(kind == "W"): # Plotting a week 
@@ -214,8 +208,8 @@ class GUI(tk.Tk):
         else: # Plotting a month
             for i, value in enumerate(values):
                 if value:
-                    printable = data.loc[(data["Year"]== int(y)) &\
-                                         (data["Month"] == int(m))]
+                    printable = data.loc[(data["Month"] == date[1]) &\
+                                         (data["Year"]== date[2])]
                     self._fig.plot(printable[mx_mi_mn[i]], color=colours_[i])
         
         self._update_graph()
