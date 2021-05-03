@@ -225,33 +225,34 @@ class GUI(tk.Tk):
     # Data ; values(max, min, mean) ; kind=day/week/month ; date(day, month, year)
     def _draw(self, data, values, kind="D", date=(0, 0, 0)):
         mx_mi_mn = ["mx", "mi", "mn"]
-        colours_ = [0, 0, 0] #gotta find a better way to do this!
-        colours_[0], colours_[1], colours_[2] = self._get_colors() 
+        colours_ = list(self._get_colors())
+        day, month, year = date
         self._fig.clear()
 
         if(kind == "D"): # Plotting a day
             for i, value in enumerate(values):
                 if value:
-                    printable = data.loc[(data["Day"] == date[0]) &\
-                                         (data["Month"] == date[1]) &\
-                                         (data["Year"] == date[2])]
+                    printable = data.loc[(data["Day"] == day) &\
+                                         (data["Month"] == month) &\
+                                         (data["Year"] == year)]
                     self._fig.plot(printable[mx_mi_mn[i]], color=colours_[i])
         
         elif(kind == "W"): # Plotting a week 
-            days_in_month = self._days_in_month(year=date[2], month=date[1])
-            print(days_in_month)
-            if(days_in_month - date[0] <= 0):
+            days_in_month = self._days_in_month(year=year, month=month)
+            if(days_in_month - day <= 0):
                 # Since a week starting at the 30th of january isn't [30, 31, 32, 33, ..]
                 # days_to_plot are calculated to solve this specific problem
-                days_to_plot  = [x for x in range(date[0],days_in_month+1)]\
-                               +[x for x in range(1, 7-days_in_month+date[0]+1)]
+                days_to_plot  = [x for x in range(day, days_in_month+1)]\
+                               +[x for x in range(1, 7-days_in_month+day+1)]
             else:
-                days_to_plot = [x for x in range(date[0], date[0]+7)]
-            print(days_to_plot)
+                days_to_plot = [x for x in range(day, day+7)]
+            possible_months = list((month, month+1))
+
             for i, value in enumerate(values):
                 if value:
                     printable = data[(data["Day"].isin(days_to_plot)) &\
-                                     (data["Year"]== date[2])]
+                                     (data["Month"].isin(possible_months)) &\
+                                     (data["Year"]== year)]
                     # The hour indexing isn't unique so if we plot according to it
                     # we end up with a messed up plot, so we need numeric indexing
                     printable.reset_index(inplace=True) 
@@ -260,8 +261,8 @@ class GUI(tk.Tk):
         else: # Plotting a month
             for i, value in enumerate(values):
                 if value:
-                    printable = data[(data["Month"] == date[1]) &\
-                                         (data["Year"]== date[2])]
+                    printable = data[(data["Month"] == month) &\
+                                         (data["Year"]== year)]
                     # The hour indexing isn't unique so if we plot according to it
                     # we end up with a messed up plot, so we need numeric indexing
                     printable.reset_index(inplace=True) 
