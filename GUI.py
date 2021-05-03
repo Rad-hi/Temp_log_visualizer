@@ -239,10 +239,15 @@ class GUI(tk.Tk):
         
         elif(kind == "W"): # Plotting a week 
             days_in_month = self._days_in_month(year=date[2], month=date[1])
-            # Since a week starting at the 30th of january isn't [30, 31, 32, 33, ..]
-            # days_to_plot are calculated to solve this specific problem
-            days_to_plot  = [x for x in range(date[0],days_in_month+1)]\
-                           +[x for x in range(1, 7-days_in_month+date[0]+1)]
+            print(days_in_month)
+            if(days_in_month - date[0] <= 0):
+                # Since a week starting at the 30th of january isn't [30, 31, 32, 33, ..]
+                # days_to_plot are calculated to solve this specific problem
+                days_to_plot  = [x for x in range(date[0],days_in_month+1)]\
+                               +[x for x in range(1, 7-days_in_month+date[0]+1)]
+            else:
+                days_to_plot = [x for x in range(date[0], date[0]+7)]
+            print(days_to_plot)
             for i, value in enumerate(values):
                 if value:
                     printable = data[(data["Day"].isin(days_to_plot)) &\
