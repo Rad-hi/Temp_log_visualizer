@@ -16,14 +16,14 @@ class parser:
 	def fetch_data(self, user, feed, key):
 		if(not self.FETCHED):
 			if((user, key) != self.USER):
-				#try:
-				adafruit_client = Client(user, key)
-				all_data = adafruit_client.data(feed) # This is all the existing data in broker
-				self._create_dataframe(all_data) # Some smart parsing shall be done !!
-				self.FETCHED = True
-				self.USER    = (user, key)
-				# except:
-				# 	self._show_message(msg="Invalid info!", title="ERROR", kind="err")
+				try:
+					adafruit_client = Client(user, key)
+					all_data = adafruit_client.data(feed) # This is all the existing data in broker
+					self._create_dataframe(all_data) # Some smart parsing shall be done !!
+					self.FETCHED = True
+					self.USER    = (user, key)
+				except:
+					self._show_message(msg="Invalid info!", title="ERROR", kind="err")
 			else:
 				self._show_message(msg="User's data already fetched!", title="NOTE", kind="info")
 		else:
