@@ -2,6 +2,10 @@
 
 ---
 
+<img src="images/demo.gif">
+
+> Quick running demo
+
 ## Overview:
 
 It's a Tkinter GUI app to visualize data coming from my [ULP_Temp_Logger](https://github.com/Rad-hi/ULP_Temp_logger) IoT node.
