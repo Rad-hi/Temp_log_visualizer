@@ -3,7 +3,7 @@
 from parser import parser
 
 import tkinter as tk
-from tkinter import ttk, colorchooser
+from tkinter import ttk, colorchooser, messagebox
 from tkcalendar import DateEntry
 
 import numpy as np
@@ -15,7 +15,7 @@ from matplotlib.figure import Figure
 style.use('ggplot')
 
 class GUI(tk.Tk):
-    ''' This is the showroom, where all graphic elements are created '''
+    ''' This is the showroom '''
     
     BACKGROUND_COLOR    = '#131313'
     COMMON_Y_POS        = 0.925
@@ -246,6 +246,9 @@ class GUI(tk.Tk):
                 if value:
                     printable = data[(data["Month"] == date[1]) &\
                                          (data["Year"]== date[2])]
+                    # The hour indexing isn't unique so if we plot according to it
+                    # we end up with a messed up plot, so we need numeric indexing
+                    printable.reset_index(inplace=True) 
                     self._fig.plot(printable[mx_mi_mn[i]], color=colours_[i])
         
         self._update_graph()
@@ -267,7 +270,7 @@ class GUI(tk.Tk):
             self._parser.fetch_data(user, feed, key)
             self._reset_inputs()
         else:
-            print("Type in Something") # Make it graphic!
+            self._show_message("Please fill in your data", "ERROR", "info")
 
     def _reset_inputs(self):
         self.USER.set("")
@@ -283,16 +286,24 @@ class GUI(tk.Tk):
 
     def _get_date(self):
         m, d, y = self._calendar.get().split('/')
-        # Don't think we'll read anything after 2050, or before 1950 \__(°_°)__/
+        # Don't think we'll read anything after 2050, or before 1950 \__(°~°)__/
         if(int(y) < 50): 
             y = "20"+y
         else:
             y = "19"+y
         return int(d), int(m), int(y)
 
-
     def _save_csv(self):
         self._parser.output_csv()
 
     def _load_csv(self):
-        self._parser = parser.from_file()
+        self._parser.load_from_file()
+
+    @staticmethod
+    def _show_message(msg, title, kind="info"):
+        if(kind == "info"):
+            messagebox.showinfo(message=msg, title=title)
+        elif(kind == "err"):
+            messagebox.showerror(message=msg, title=title)
+        else: # "warn"
+            messagebox.showwarning(message=msg, title=title)
