@@ -6,6 +6,8 @@ import tkinter as tk
 from tkinter import ttk, colorchooser, messagebox
 from tkcalendar import DateEntry
 
+from calendar import monthrange
+
 import numpy as np
 
 from matplotlib import style
@@ -236,10 +238,19 @@ class GUI(tk.Tk):
                     self._fig.plot(printable[mx_mi_mn[i]], color=colours_[i])
         
         elif(kind == "W"): # Plotting a week 
-            
-            ''' Plotting a week is complicated since we need to check 
-            if we're in the end of a month and wrap the "day" value '''
-            self._fig.plot([1,2,3,4,5,6,7,8],[20,-12,9,8,1,9,3,-6])
+            days_in_month = self._days_in_month(year=date[2], month=date[1])
+            # Since a week starting at the 30th of january isn't [30, 31, 32, 33, ..]
+            # days_to_plot are calculated to solve this specific problem
+            days_to_plot  = [x for x in range(date[0],days_in_month+1)]\
+                           +[x for x in range(1, 7-days_in_month+date[0]+1)]
+            for i, value in enumerate(values):
+                if value:
+                    printable = data[(data["Day"].isin(days_to_plot)) &\
+                                     (data["Year"]== date[2])]
+                    # The hour indexing isn't unique so if we plot according to it
+                    # we end up with a messed up plot, so we need numeric indexing
+                    printable.reset_index(inplace=True) 
+                    self._fig.plot(printable[mx_mi_mn[i]], color=colours_[i])            
         
         else: # Plotting a month
             for i, value in enumerate(values):
@@ -263,6 +274,10 @@ class GUI(tk.Tk):
         _canvas = FigureCanvasTkAgg(self._graph, self)
         _canvas.get_tk_widget()\
                .place(relx=0.03, rely=0.052, relheight=0.85, relwidth=0.8)
+
+    @staticmethod
+    def _days_in_month(year="1998", month="1"):
+        return monthrange(year, month)[1]
 
     def _authenticate(self, *args):
         user, feed, key = self._get_inputs()   
