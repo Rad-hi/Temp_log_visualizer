@@ -20,6 +20,8 @@ This desktop app allows anyone deploying my project (aka, me) to:
 
 - Visualize the data according to value (max, min, mean) on the same graph, with the ability to choose a date(by the user through a calendar) and customize the individual graphs' colors(by the user through a color picker). Additionally, data could be plotted for a specific day (picked date), for a week (7 days starting from the picked date), or for a whole month (the month of the picked date).
 
+**Note**: I tested it on randomly generated data, I have some technical issues that prohibit me from running my physical node and get real data uploaded to the broker. 
+
 ## Technologies used:
 
 Python 3.9 with: **tkinter, numpy, pandas, matplotlib, calendar, json, Adafruit_IO.Client(build on paho.mqtt), datetime**
