@@ -6,7 +6,7 @@
 
 Getting an executable file from this on my linux machine (Pop!Os) wasn't easy, but I finally got it to work, and here's how:
 
-First of all, an executable file is an **environement independant** file that, in a system that doesn't have any project dependencies installed, **not even Python**, would run perfectly. In my case, anyone taking an executable file ***dist/Temp_viz*** and running it on a debian machine will "hopefully" get an app popping-up for them.
+First of all, an executable file is an **environement independant** file that, in a system that doesn't have any project dependencies installed, **not even Python**, would run perfectly. In my case, anyone taking my executable file ***dist/Temp_viz*** and running it on a debian machine will "hopefully" get my app popping-up for them.
 
 Now, how to make my project (or any Python project into an executable)?
 
