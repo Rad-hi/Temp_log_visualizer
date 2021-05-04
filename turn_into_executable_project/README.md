@@ -30,7 +30,7 @@ $pyinstaller main_.py
 
 Another option is that you start playing around with the options in the command-line, or even better, write a python script that executes the commands for you, and you just run that python script. I personally created the python script named **execute_for_executable.py** which looks like this:
 
-```
+```python
 #!/usr/bin/env python3
 
 # https://pyinstaller.readthedocs.io/en/stable/usage.html
@@ -79,7 +79,7 @@ Which was a strange error since I obviously imported it and got my project worki
 
 Briefly, pyinstaller needs to be told where are some libraries sometimes with the ```--hidden-import MODULENAME``` option, but that still didn't solve it. Anyway, I simply couldn't solve this problem with pyinstaller alone so I needed to hack my way out of this problem, and my solution was to copy the Adafrui_IO lib into my folder, change its name to Adafruit_IO**_** and make these changes to its client.py file:
 
-```
+```python
 from time import struct_time
 import json
 #import platform
