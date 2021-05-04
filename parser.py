@@ -23,7 +23,7 @@ class parser:
 					self.FETCHED = True
 					self.USER    = (user, key)
 				except:
-					self._show_message(msg="Not able to fetch!", title="ERROR", kind="err")
+					self._show_message(msg="Unable to fetch!", title="ERROR", kind="err")
 			else:
 				self._show_message(msg="User's data already fetched!", title="NOTE", kind="info")
 		else:
