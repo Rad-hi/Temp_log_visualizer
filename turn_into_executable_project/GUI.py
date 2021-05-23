@@ -16,6 +16,42 @@ from matplotlib.figure import Figure
 
 style.use('ggplot')
 
+class MyDateEntry(DateEntry):
+    ''' Create a custom date entry that modifies the drop_down method
+        and makes it auto-adjust to not get out of the screen when intersecting '''
+    def __init__(self, master=None, align='left', **kw):
+        DateEntry.__init__(self, master, **kw)
+        self.align = align
+
+    def drop_down(self):
+        """Display or withdraw the drop-down calendar depending on its current state."""
+        if self._calendar.winfo_ismapped():
+            self._top_cal.withdraw()
+        else:
+            self._validate_date()
+            date = self.parse_date(self.get())
+            h = self._top_cal.winfo_reqheight()
+            w = self._top_cal.winfo_reqwidth()
+            x_max = self.winfo_screenwidth()
+            y_max = self.winfo_screenheight()
+            # default: left-aligned drop-down below the entry
+            x = self.winfo_rootx()
+            y = self.winfo_rooty() + self.winfo_height()
+            if x + w > x_max:  # the drop-down goes out of the screen
+                # right-align the drop-down
+                x += self.winfo_width() - w
+            if y + h > y_max:  # the drop-down goes out of the screen
+                # bottom-align the drop-down
+                y -= self.winfo_height() + h
+            if self.winfo_toplevel().attributes('-topmost'):
+                self._top_cal.attributes('-topmost', True)
+            else:
+                self._top_cal.attributes('-topmost', False)
+                self._top_cal.geometry('+%i+%i' % (x, y))
+                self._top_cal.deiconify()
+                self._calendar.focus_set()
+                self._calendar.selection_set(date)
+
 class GUI(tk.Tk):
     ''' This is the showroom '''
     
@@ -31,7 +67,7 @@ class GUI(tk.Tk):
     # Holds the latest state of the max_col, min_col, mean_col
     COLORS              = ('')*3
 
-    def __init__(self, title='Temp_log', min_size=(1120,630),
+    def __init__(self, title='Temp_log', min_size=(1020,560),
                  fg='white', canvas_colour='white'):
         super().__init__()
         self._initialise_window(title, min_size, fg)
@@ -152,7 +188,7 @@ class GUI(tk.Tk):
                  bg=self.BACKGROUND_COLOR, fg="white")\
           .place(relx=0.685, rely=self.COMMON_Y_POS, relheight=0.048)
 
-        self._calendar = DateEntry(self, borderwidth=1, width=6)
+        self._calendar = MyDateEntry(self, borderwidth=1, width=6)
         self._calendar.place(relx=0.772, rely=self.COMMON_Y_POS, relheight=0.04)
 
     def _create_get_csv_button(self):
