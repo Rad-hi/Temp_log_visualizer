@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(['main_.py'],
-             pathex=['/home/radhi/Desktop/TLog_GUI/turn_into_executable_project'],
+             pathex=['/home/radhi/Desktop/Things/TLog_GUI/turn_into_executable_project'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -31,4 +31,4 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True , icon='images/icon.png')
+          console=True , icon='images/icon.ico')
