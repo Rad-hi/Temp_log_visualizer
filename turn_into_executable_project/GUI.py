@@ -67,7 +67,7 @@ class GUI(tk.Tk):
     # Holds the latest state of the max_col, min_col, mean_col
     COLORS              = ('')*3
 
-    def __init__(self, title='Temp_log', min_size=(1120,630),
+    def __init__(self, title='Temp_log', min_size=(1020,560),
                  fg='white', canvas_colour='white'):
         super().__init__()
         self._initialise_window(title, min_size, fg)
